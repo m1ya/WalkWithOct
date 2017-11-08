@@ -1,49 +1,68 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum PlayerStatus
+{
+	NORMAL,
+	LIFT,
+	FREEZE
+}
+
 public class PlayerController : MonoBehaviour
 {
+	[SerializeField]
+	private OctController octController;
+
+	private PlayerStatus _status;
 
 	public float speed = 4f;
 	//********** 開始 **********//
 	public float jumpPower = 700;
 	//ジャンプ力
 	public LayerMask groundLayer;
+	public LayerMask octLayer;
 	//Linecastで判定するLayer
 	//********** 終了 **********//
 	private Rigidbody2D rigidbody2D;
 	//	private Animator anim;
 	//********** 開始 **********//
 	private bool isGrounded;
-	//着地判定
+	private bool isOctTouched;
 	//********** 終了 **********//
 
 	void Start ()
 	{
 //		anim = GetComponent<Animator> ();
+		_status = PlayerStatus.NORMAL;
 		rigidbody2D = GetComponent<Rigidbody2D> ();
 	}
 	//********** 開始 **********//
 	void Update ()
 	{
-		//Linecastでユニティちゃんの足元に地面があるか判定
 		isGrounded = Physics2D.Linecast (
-			transform.position + transform.up * 1,
+			transform.position + transform.up * 0.5f,
 			transform.position - transform.up * 0.05f,
 			groundLayer);
-		//スペースキーを押し、
-		if (Input.GetKeyDown ("space")) {
-			//着地していた時、
-			if (isGrounded) {
-				//Dashアニメーションを止めて、Jumpアニメーションを実行
-//				anim.SetBool ("Dash", false);
-//				anim.SetTrigger ("Jump");
-				//着地判定をfalse
-				isGrounded = false;
-				//AddForceにて上方向へ力を加える
-				rigidbody2D.AddForce (Vector2.up * jumpPower);
+		
+		isOctTouched = Physics2D.CircleCast (
+			transform.position + transform.up * 0.5f,
+			0.8f, Vector2.zero, 0f,
+			octLayer);
+		
+		if (Input.GetKeyDown (KeyCode.Z)) {
+			if (isGrounded)
+				_Jump ();
+		}
+
+		if (Input.GetKeyDown (KeyCode.X)) {
+			if (!(_status == PlayerStatus.LIFT)) {
+				if (isOctTouched)
+					_Lift ();
+			} else {
+				_Put ();
 			}
 		}
+
 		//上下への移動速度を取得
 		float velY = rigidbody2D.velocity.y;
 		//移動速度が0.1より大きければ上昇
@@ -74,5 +93,29 @@ public class PlayerController : MonoBehaviour
 			rigidbody2D.velocity = new Vector2 (0, rigidbody2D.velocity.y);
 //			anim.SetBool ("Dash", false);
 		}
+	}
+
+	void _Jump ()
+	{
+		//Dashアニメーションを止めて、Jumpアニメーションを実行
+		//				anim.SetBool ("Dash", false);
+		//				anim.SetTrigger ("Jump");
+		//AddForceにて上方向へ力を加える
+		rigidbody2D.AddForce (Vector2.up * jumpPower);
+	}
+
+	void _Lift ()
+	{
+		Debug.Log ("Lift");
+		_status = PlayerStatus.LIFT;
+		octController.Lifted ();
+	}
+
+	void _Put ()
+	{
+		if (octController.Putted ())
+			_status = PlayerStatus.NORMAL;
+		else
+			_status = PlayerStatus.FREEZE;
 	}
 }
