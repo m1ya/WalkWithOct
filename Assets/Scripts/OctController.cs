@@ -23,6 +23,8 @@ public class OctController : MonoBehaviour
 
 	private bool isGrounded;
 
+	public float speed = 4f;
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -54,8 +56,31 @@ public class OctController : MonoBehaviour
 		}
 	}
 
+	void FixedUpdate ()
+	{
+		if (_status == OctStatus.STICK) {
+			float y = Input.GetAxisRaw ("Horizontal");
+			if (y != 0) {
+				_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, y * speed);
+				/*Vector2 temp = transform.localScale;
+				temp.y = y;
+				transform.localScale = temp;*/
+				//			anim.SetBool ("Dash", true);
+				Vector2 min = Camera.main.ViewportToWorldPoint (new Vector2 (0, 0));
+				Vector2 max = Camera.main.ViewportToWorldPoint (new Vector2 (1, 1));
+				Vector2 pos = transform.position;
+				pos.y = Mathf.Clamp (pos.y, min.y + 0.5f, max.y);
+				transform.position = pos;
+			} else {
+				_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, 0);
+				//			anim.SetBool ("Dash", false);
+			}
+		}
+	}
+
 	public void Lifted ()
 	{
+		transform.eulerAngles = new Vector3 (0, 0, 0);
 		_status = OctStatus.LIFTED;
 		transform.SetParent (player.transform);
 	}
@@ -64,6 +89,7 @@ public class OctController : MonoBehaviour
 	{
 		transform.SetParent (null);
 		if (isGrounded) {
+			transform.eulerAngles = new Vector3 (0, 0, 90);
 			_status = OctStatus.STICK;
 			return false;
 		} else {

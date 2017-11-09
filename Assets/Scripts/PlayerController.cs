@@ -5,7 +5,7 @@ public enum PlayerStatus
 {
 	NORMAL,
 	LIFT,
-	FREEZE
+	WAIT
 }
 
 public class PlayerController : MonoBehaviour
@@ -48,11 +48,16 @@ public class PlayerController : MonoBehaviour
 			transform.position + transform.up * 0.5f,
 			0.8f, Vector2.zero, 0f,
 			octLayer);
-		
-		if (Input.GetKeyDown (KeyCode.Z)) {
-			if (isGrounded)
-				_Jump ();
-		}
+
+		//上下への移動速度を取得
+		float velY = rigidbody2D.velocity.y;
+		//移動速度が0.1より大きければ上昇
+		bool isJumping = velY > 0.1f ? true : false;
+		//移動速度が-0.1より小さければ下降
+		bool isFalling = velY < -0.1f ? true : false;
+		//結果をアニメータービューの変数へ反映する
+		//		anim.SetBool ("isJumping", isJumping);
+		//		anim.SetBool ("isFalling", isFalling);
 
 		if (Input.GetKeyDown (KeyCode.X)) {
 			if (!(_status == PlayerStatus.LIFT)) {
@@ -63,20 +68,21 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 
-		//上下への移動速度を取得
-		float velY = rigidbody2D.velocity.y;
-		//移動速度が0.1より大きければ上昇
-		bool isJumping = velY > 0.1f ? true : false;
-		//移動速度が-0.1より小さければ下降
-		bool isFalling = velY < -0.1f ? true : false;
-		//結果をアニメータービューの変数へ反映する
-//		anim.SetBool ("isJumping", isJumping);
-//		anim.SetBool ("isFalling", isFalling);
+		if (_status == PlayerStatus.WAIT)
+			return;
+
+		if (Input.GetKeyDown (KeyCode.Z)) {
+			if (isGrounded)
+				_Jump ();
+		}
 	}
 	//********** 終了 **********//
 
 	void FixedUpdate ()
 	{
+		if (_status == PlayerStatus.WAIT)
+			return;
+		
 		float x = Input.GetAxisRaw ("Horizontal");
 		if (x != 0) {
 			rigidbody2D.velocity = new Vector2 (x * speed, rigidbody2D.velocity.y);
@@ -116,6 +122,6 @@ public class PlayerController : MonoBehaviour
 		if (octController.Putted ())
 			_status = PlayerStatus.NORMAL;
 		else
-			_status = PlayerStatus.FREEZE;
+			_status = PlayerStatus.WAIT;
 	}
 }
