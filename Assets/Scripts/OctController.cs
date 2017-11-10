@@ -48,10 +48,12 @@ public class OctController : MonoBehaviour
 				transform.position + Vector3.right * 0.5f,
 				transform.position - Vector3.left * 0.5f,
 				groundLayer);
-			Debug.Log (isGrounded);
 			break;
 		case OctStatus.STICK:
-			Debug.Log ("Stick");
+			isGrounded = Physics2D.Linecast (
+				transform.position + Vector3.right * 0.5f,
+				transform.position - Vector3.left * 0.5f,
+				groundLayer);
 			break;
 		}
 	}
@@ -59,21 +61,43 @@ public class OctController : MonoBehaviour
 	void FixedUpdate ()
 	{
 		if (_status == OctStatus.STICK) {
-			float y = Input.GetAxisRaw ("Horizontal");
-			if (y != 0) {
-				_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, y * speed);
-				/*Vector2 temp = transform.localScale;
+			if (!isGrounded) {
+				transform.eulerAngles = new Vector3 (0, 0, 0);
+			}
+			if (transform.eulerAngles.z == 90) {
+				float y = Input.GetAxisRaw ("Horizontal");
+				if (y != 0) {
+					_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, y * speed);
+					/*Vector2 temp = transform.localScale;
 				temp.y = y;
 				transform.localScale = temp;*/
-				//			anim.SetBool ("Dash", true);
-				Vector2 min = Camera.main.ViewportToWorldPoint (new Vector2 (0, 0));
-				Vector2 max = Camera.main.ViewportToWorldPoint (new Vector2 (1, 1));
-				Vector2 pos = transform.position;
-				pos.y = Mathf.Clamp (pos.y, min.y + 0.5f, max.y);
-				transform.position = pos;
+					//			anim.SetBool ("Dash", true);
+					Vector2 min = Camera.main.ViewportToWorldPoint (new Vector2 (0, 0));
+					Vector2 max = Camera.main.ViewportToWorldPoint (new Vector2 (1, 1));
+					Vector2 pos = transform.position;
+					pos.y = Mathf.Clamp (pos.y, min.y + 0.5f, max.y);
+					transform.position = pos;
+				} else {
+					_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, 0);
+					//			anim.SetBool ("Dash", false);
+				}
 			} else {
-				_rigidbody.velocity = new Vector2 (_rigidbody.velocity.x, 0);
-				//			anim.SetBool ("Dash", false);
+				float x = Input.GetAxisRaw ("Horizontal");
+				if (x != 0) {
+					_rigidbody.velocity = new Vector2 (x * speed, _rigidbody.velocity.y);
+					Vector2 temp = transform.localScale;
+					temp.x = x;
+					transform.localScale = temp;
+					//			anim.SetBool ("Dash", true);
+					Vector2 min = Camera.main.ViewportToWorldPoint (new Vector2 (0, 0));
+					Vector2 max = Camera.main.ViewportToWorldPoint (new Vector2 (1, 1));
+					Vector2 pos = transform.position;
+					pos.x = Mathf.Clamp (pos.x, min.x + 0.5f, max.x);
+					transform.position = pos;
+				} else {
+					_rigidbody.velocity = new Vector2 (0, _rigidbody.velocity.y);
+					//			anim.SetBool ("Dash", false);
+				}
 			}
 		}
 	}

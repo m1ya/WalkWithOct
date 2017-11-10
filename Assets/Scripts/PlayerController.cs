@@ -121,7 +121,9 @@ public class PlayerController : MonoBehaviour
 	{
 		if (octController.Putted ())
 			_status = PlayerStatus.NORMAL;
-		else
+		else {
 			_status = PlayerStatus.WAIT;
+			CameraController.Instance.ChangeTarget (octController.gameObject.transform);
+		}
 	}
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraController : MonoBehaviour
+public class CameraController : SingletonMonoBehaviour<CameraController>
 {
 
 	[SerializeField]
@@ -18,5 +18,10 @@ public class CameraController : MonoBehaviour
 	void Update ()
 	{
 		transform.position = Vector3.Lerp (transform.position, target.position + new Vector3 (0, 0, -10), Time.deltaTime * 3);
+	}
+
+	public void ChangeTarget (Transform newTarget)
+	{
+		target = newTarget;
 	}
 }
